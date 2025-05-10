@@ -72,16 +72,6 @@ func handleStratumRequest(request *stratumRequest, client *stratumClient, pool *
         return miningExtranonceSubscribe(request, client)
     case "mining.submit":
         return miningSubmit(request, client, pool)
-    case "mining.configure":
-        return stratumResponse{
-            ID: request.Id,
-            Result: map[string]interface{}{
-                "version-rolling": false,
-                "minimum-difficulty": true,
-                "subscribe-extranonce": true,
-            },
-            Error: nil,
-        }, nil
     case "mining.multi_version":
         return nil, nil // ignored
     default:
@@ -239,22 +229,4 @@ func miningSubmit(request *stratumRequest, client *stratumClient, pool *PoolServ
 	return response, nil
 }
 
-// Remove this entire function since it's already defined in network.go
-func sendPacket(response any, client *stratumClient) error {
-    responseBytes, err := json.Marshal(response)
-    if err != nil {
-        log.Printf("Error marshaling response for client %s: %v", client.ip, err)
-        return err
-    }
-
-    // Add newline to response as per stratum protocol
-    responseBytes = append(responseBytes, '\n')
-
-    _, err = client.connection.Write(responseBytes)
-    if err != nil {
-        log.Printf("Error writing response to client %s: %v", client.ip, err)
-        return err
-    }
-
-    return nil
-}
+// Remove the entire sendPacket function since it's already defined in network.go
