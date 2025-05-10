@@ -54,6 +54,16 @@ func handleStratumRequest(request *stratumRequest, client *stratumClient, pool *
 		return miningExtranonceSubscribe(request, client)
 	case "mining.submit":
 		return miningSubmit(request, client, pool)
+	case "mining.configure":
+		return stratumResponse{
+			Id: request.Id,
+			Result: map[string]interface{}{
+				"version-rolling": false,
+				"minimum-difficulty": true,
+				"subscribe-extranonce": true,
+			},
+			Error: nil,
+		}, nil
 	case "mining.multi_version":
 		return nil, nil // ignored
 	default:

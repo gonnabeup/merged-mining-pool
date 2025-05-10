@@ -61,7 +61,7 @@ func (p *PoolServer) handleStratumRequest(client *stratumClient, req stratumRequ
     switch req.Method {
     case "mining.configure":
         response := stratumResponse{
-            ID:     req.Id,
+            Id:     req.Id,
             Result: map[string]interface{}{
                 "version-rolling": false,
                 "minimum-difficulty": true,
@@ -69,7 +69,7 @@ func (p *PoolServer) handleStratumRequest(client *stratumClient, req stratumRequ
             },
             Error: nil,
         }
-        return client.WriteMessage(response)  // Changed Send to WriteMessage
+        return sendPacket(response, client)
     }
     return nil
 }
