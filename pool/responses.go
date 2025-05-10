@@ -13,7 +13,7 @@ import (
 )
 
 type stratumResponse struct {
-	Id      json.RawMessage       `json:"id"`
+	ID      json.RawMessage       `json:"id"`      // Changed from Id to ID
 	Version string                `json:"jsonrpc,omitempty"`
 	Result  interface{}           `json:"result"`
 	Error   *stratumErrorResponse `json:"error,omitempty"`
@@ -56,7 +56,7 @@ func handleStratumRequest(request *stratumRequest, client *stratumClient, pool *
 		return miningSubmit(request, client, pool)
 	case "mining.configure":
 		return stratumResponse{
-			Id: request.Id,
+			ID: request.Id,    // Changed from Id to ID
 			Result: map[string]interface{}{
 				"version-rolling": false,
 				"minimum-difficulty": true,

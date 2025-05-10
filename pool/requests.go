@@ -57,11 +57,13 @@ type stratumResponse struct {
     Error  interface{}         `json:"error"`
 }
 
+// Remove the stratumResponse struct definition
+
 func (p *PoolServer) handleStratumRequest(client *stratumClient, req stratumRequest) error {
     switch req.Method {
     case "mining.configure":
         response := stratumResponse{
-            Id:     req.Id,
+            ID: req.Id,    // Changed from Id to ID
             Result: map[string]interface{}{
                 "version-rolling": false,
                 "minimum-difficulty": true,
