@@ -1,9 +1,13 @@
 package pool
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
+	"net"
+	"strings"
 	"sync"
 	"time"
 
@@ -185,4 +189,26 @@ func logFatalOnError(e error) {
 	if e != nil {
 		log.Fatal(e)
 	}
+}
+
+func generateExtranonce() string {
+    return uuid.New().String()[:8]
+}
+
+func (pool *PoolServer) setupClient(client *stratumClient) error {
+    // Basic client setup
+    timeout, err := time.ParseDuration(pool.config.ConnectionTimeout)
+    if err != nil {
+        return err
+    }
+    pool.connectionTimeout = timeout
+    client.connection.SetDeadline(time.Now().Add(pool.connectionTimeout))
+    return nil
+}
+
+// Update removeSession to accept *stratumClient
+func removeSession(client *stratumClient) {
+    sessionsMutex.Lock()
+    defer sessionsMutex.Unlock()
+    delete(sessions, client.sessionID)
 }
