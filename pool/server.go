@@ -48,19 +48,79 @@ func (pool *PoolServer) Start() {
 	pool.loadBlockchainNodes()
 	pool.startBufferManager()
 
+	// Add logging for initialization
+	log.Printf("Pool server starting with config: %+v", pool.config)
+	log.Printf("Active nodes: %+v", pool.activeNodes)
+
 	amountOfChains := len(pool.config.BlockChainOrder) - 1
 	pool.templates.AuxBlocks = make([]bitcoin.AuxBlock, amountOfChains)
 
 	// Initial work creation
+	log.Println("Creating initial work template...")
 	panicOnError(pool.fetchRpcBlockTemplatesAndCacheWork())
 	work, err := pool.generateWorkFromCache(false)
 	panicOnError(err)
+	log.Printf("Initial work template created: %+v", work)
 
 	go pool.listenForConnections()
 	pool.broadcastWork(work)
 
 	// There after..
 	panicOnError(pool.listenForBlockNotifications())
+}
+
+func (pool *PoolServer) handleConnection(conn net.Conn) {
+	// Add connection details logging
+	remoteAddr := conn.RemoteAddr().String()
+	log.Printf("New connection details - Local: %v, Remote: %v", 
+	    conn.LocalAddr().String(), remoteAddr)
+
+	client := &stratumClient{
+		connection: conn,
+		ip:         strings.Split(remoteAddr, ":")[0],
+	}
+
+	// Generate unique extranonce for the client
+	client.extranonce1 = generateExtranonce()
+	log.Printf("Generated extranonce1 for client %s: %s", client.ip, client.extranonce1)
+
+	// Add error handling and logging for client setup
+	if err := pool.setupClient(client); err != nil {
+		log.Printf("Error setting up client %s: %v", client.ip, err)
+		conn.Close()
+		return
+	}
+
+	go pool.handleClient(client)
+}
+
+func (pool *PoolServer) handleClient(client *stratumClient) {
+	defer func() {
+		log.Printf("Client disconnecting - IP: %s, Worker: %s, Session: %s", 
+		    client.ip, client.login, client.sessionID)
+		removeSession(client)
+		client.connection.Close()
+	}()
+
+	reader := bufio.NewReader(client.connection)
+	for {
+		message, err := reader.ReadBytes('\n')
+		if err != nil {
+			if err != io.EOF {
+				log.Printf("Error reading from client %s: %v", client.ip, err)
+			}
+			return
+		}
+
+		// Log raw message for debugging
+		log.Printf("Received message from %s: %s", client.ip, string(message))
+
+		err = pool.respondToStratumClient(client, message)
+		if err != nil {
+			log.Printf("Error handling message from %s: %v", client.ip, err)
+			return
+		}
+	}
 }
 
 func (pool *PoolServer) broadcastWork(work bitcoin.Work) {
