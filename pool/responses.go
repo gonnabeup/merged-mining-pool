@@ -54,7 +54,6 @@ func handleStratumRequest(request *stratumRequest, client *stratumClient, pool *
     
     switch request.Method {
     case "mining.configure":
-        // Add version field to response
         return stratumResponse{
             ID: request.Id,
             Version: "2.0",
@@ -240,6 +239,7 @@ func miningSubmit(request *stratumRequest, client *stratumClient, pool *PoolServ
 	return response, nil
 }
 
+// Remove this entire function since it's already defined in network.go
 func sendPacket(response any, client *stratumClient) error {
     responseBytes, err := json.Marshal(response)
     if err != nil {
