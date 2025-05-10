@@ -107,7 +107,7 @@ func miningSubscribe(request *stratumRequest, client *stratumClient) (stratumRes
 	responseResult = append(responseResult, extranonce1)
 	responseResult = append(responseResult, extranonce2Length)
 
-	response.Id = request.Id
+	response.ID = request.Id  // Changed from Id to ID
 	response.Result = responseResult
 
 	return response, nil
@@ -131,7 +131,7 @@ func miningAuthorize(request *stratumRequest, client *stratumClient, pool *PoolS
 
 	authResponse := stratumResponse{
 		Result: interface{}(false),
-		Id:     request.Id,
+		ID:     request.Id,    // Changed from Id to ID
 	}
 
 	loginString := params[0]
@@ -201,7 +201,7 @@ func miningExtranonceSubscribe(request *stratumRequest, client *stratumClient) (
 func miningSubmit(request *stratumRequest, client *stratumClient, pool *PoolServer) (stratumResponse, error) {
 	response := stratumResponse{
 		Result: interface{}(false),
-		Id:     request.Id,
+		ID:     request.Id,    // Changed from Id to ID
 	}
 
 	var work bitcoin.Work
