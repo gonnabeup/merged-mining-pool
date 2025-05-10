@@ -83,7 +83,7 @@ func (pool *PoolServer) openNewConnection(client *stratumClient) {
 	err := pool.handleStratumConnection(client)
 	if err != nil {
 		log.Println(err)
-		removeSession(client.sessionID)
+		removeSession(client)  // Updated to pass client instead of sessionID
 		client.connection.Close()
 		numberOfConnections--
 	}
@@ -99,7 +99,7 @@ func (pool *PoolServer) handleStratumConnection(client *stratumClient) error {
 	for {
 		payload, isPrefix, err := connectionBuffer.ReadLine()
 		if err == io.EOF {
-			removeSession(client.sessionID)
+			removeSession(client)  // Updated to pass client instead of sessionID
 			return errors.New("client disconnect: " + client.ip)
 		}
 

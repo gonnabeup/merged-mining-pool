@@ -1,17 +1,26 @@
 package pool
 
+import "sync"
+
 type sessionMap map[string]*stratumClient
 
-var sessions sessionMap
+var (
+    sessions     sessionMap
+    sessionMutex sync.RWMutex
+)
 
 func initiateSessions() {
-	sessions = make(sessionMap)
+    sessions = make(sessionMap)
 }
 
 func addSession(client *stratumClient) {
-	sessions[client.sessionID] = client
+    sessionMutex.Lock()
+    defer sessionMutex.Unlock()
+    sessions[client.sessionID] = client
 }
 
-func removeSession(sessionID string) {
-	delete(sessions, sessionID)
+func removeSession(client *stratumClient) {
+    sessionMutex.Lock()
+    defer sessionMutex.Unlock()
+    delete(sessions, client.sessionID)
 }

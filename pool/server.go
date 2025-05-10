@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"designs.capital/dogepool/bitcoin"
 	"designs.capital/dogepool/config"
 	"designs.capital/dogepool/persistence"
@@ -195,6 +196,7 @@ func generateExtranonce() string {
     return uuid.New().String()[:8]
 }
 
+// Remove the duplicate removeSession function from server.go
 func (pool *PoolServer) setupClient(client *stratumClient) error {
     // Basic client setup
     timeout, err := time.ParseDuration(pool.config.ConnectionTimeout)

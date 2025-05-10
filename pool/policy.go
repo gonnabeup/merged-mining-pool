@@ -9,9 +9,9 @@ func surpassedLimitPolicy(ip string) bool {
 }
 
 func banClient(client *stratumClient) {
-	removeSession(client.sessionID)
+    removeSession(client)  // Updated to pass client instead of sessionID
 
-	// BAN IP?  BAN Miner address?
+    // BAN IP?  BAN Miner address?
 }
 
 func markMalformedRequest(client *stratumClient, jsonPayload []byte) {
