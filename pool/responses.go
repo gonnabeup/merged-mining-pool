@@ -45,30 +45,33 @@ func (pool *PoolServer) respondToStratumClient(client *stratumClient, requestPay
 }
 
 func handleStratumRequest(request *stratumRequest, client *stratumClient, pool *PoolServer) (any, error) {
-	switch request.Method {
-	case "mining.subscribe":
-		return miningSubscribe(request, client)
-	case "mining.authorize":
-		return miningAuthorize(request, client, pool)
-	case "mining.extranonce.subscribe":
-		return miningExtranonceSubscribe(request, client)
-	case "mining.submit":
-		return miningSubmit(request, client, pool)
-	case "mining.configure":
-		return stratumResponse{
-			ID: request.Id,    // Changed from Id to ID
-			Result: map[string]interface{}{
-				"version-rolling": false,
-				"minimum-difficulty": true,
-				"subscribe-extranonce": true,
-			},
-			Error: nil,
-		}, nil
-	case "mining.multi_version":
-		return nil, nil // ignored
-	default:
-		return stratumResponse{}, errors.New("unknown stratum request method: " + request.Method)
-	}
+    log.Printf("Handling stratum request method: %s from client: %s", request.Method, client.ip)
+    
+    switch request.Method {
+    case "mining.subscribe":
+        return miningSubscribe(request, client)
+    case "mining.authorize":
+        return miningAuthorize(request, client, pool)
+    case "mining.extranonce.subscribe":
+        return miningExtranonceSubscribe(request, client)
+    case "mining.submit":
+        return miningSubmit(request, client, pool)
+    case "mining.configure":
+        return stratumResponse{
+            ID: request.Id,
+            Result: map[string]interface{}{
+                "version-rolling": false,
+                "minimum-difficulty": true,
+                "subscribe-extranonce": true,
+            },
+            Error: nil,
+        }, nil
+    case "mining.multi_version":
+        return nil, nil // ignored
+    default:
+        log.Printf("Unknown stratum method received: %s from client: %s", request.Method, client.ip)
+        return stratumResponse{}, errors.New("unknown stratum request method: " + request.Method)
+    }
 }
 
 func miningSubscribe(request *stratumRequest, client *stratumClient) (stratumResponse, error) {
