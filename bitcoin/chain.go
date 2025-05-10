@@ -19,6 +19,8 @@ func GetChain(chainName string) Blockchain {
 		return Dogecoin{}
 	case "litecoin":
 		return Litecoin{}
+	case "digibyte":
+		return Digibyte{}
 	default:
 		panic("Unknown blockchain: " + chainName)
 	}
