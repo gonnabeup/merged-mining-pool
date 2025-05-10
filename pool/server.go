@@ -209,8 +209,9 @@ func (pool *PoolServer) setupClient(client *stratumClient) error {
 }
 
 // Update removeSession to accept *stratumClient
-func removeSession(client *stratumClient) {
-    sessionsMutex.Lock()
-    defer sessionsMutex.Unlock()
-    delete(sessions, client.sessionID)
-}
+// Remove this duplicate function:
+// func removeSession(client *stratumClient) {
+//     sessionsMutex.Lock()
+//     defer sessionsMutex.Unlock()
+//     delete(sessions, client.sessionID)
+// }
