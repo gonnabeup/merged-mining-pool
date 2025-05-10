@@ -6,11 +6,6 @@ import (
 	"designs.capital/dogepool/bitcoin"
 )
 
-// type stratumRequest struct {
-// 	stratumRequestDetail
-// 	Worker string `json:"worker"`
-// }
-
 type stratumRequest struct {
 	Id     json.RawMessage `json:"id"`
 	Method string          `json:"method"`
