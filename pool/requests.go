@@ -50,3 +50,26 @@ func miningSetDifficulty(difficulty float64) stratumRequest {
 
 	return request
 }
+
+type stratumResponse struct {
+    ID     json.RawMessage     `json:"id"`
+    Result interface{}         `json:"result"`
+    Error  interface{}         `json:"error"`
+}
+
+func (p *PoolServer) handleStratumRequest(client *stratumClient, req stratumRequest) error {
+    switch req.Method {
+    case "mining.configure":
+        response := stratumResponse{
+            ID:     req.Id,  // Note: changed from ID to Id to match the request struct
+            Result: map[string]interface{}{
+                "version-rolling": false,
+                "minimum-difficulty": true,
+                "subscribe-extranonce": true,
+            },
+            Error: nil,
+        }
+        return client.Send(response)
+    }
+    return nil
+}
