@@ -29,7 +29,7 @@ func (pool *PoolServer) respondToStratumClient(client *stratumClient, requestPay
 	err := json.Unmarshal(requestPayload, &request)
 	if err != nil {
 		markMalformedRequest(client, requestPayload)
-		log.Println("Malformed stratum request from: " + client.ip)
+		log.Printf("Malformed stratum request from %s: %v", client.ip, err)
 		return err
 	}
 
@@ -38,16 +38,33 @@ func (pool *PoolServer) respondToStratumClient(client *stratumClient, requestPay
 
 	response, err := handleStratumRequest(&request, client, pool)
 	if err != nil {
+		log.Printf("Error handling stratum request from %s: %v", client.ip, err)
 		return err
 	}
 
-	return sendPacket(response, client)
+	err = sendPacket(response, client)
+	if err != nil {
+		log.Printf("Error sending response to %s: %v", client.ip, err)
+	}
+	return err
 }
 
 func handleStratumRequest(request *stratumRequest, client *stratumClient, pool *PoolServer) (any, error) {
     log.Printf("Handling stratum request method: %s from client: %s", request.Method, client.ip)
     
     switch request.Method {
+    case "mining.configure":
+        // Add version field to response
+        return stratumResponse{
+            ID: request.Id,
+            Version: "2.0",
+            Result: map[string]interface{}{
+                "version-rolling": false,
+                "minimum-difficulty": true,
+                "subscribe-extranonce": true,
+            },
+            Error: nil,
+        }, nil
     case "mining.subscribe":
         return miningSubscribe(request, client)
     case "mining.authorize":
@@ -221,4 +238,23 @@ func miningSubmit(request *stratumRequest, client *stratumClient, pool *PoolServ
 	response.Result = interface{}(true)
 
 	return response, nil
+}
+
+func sendPacket(response any, client *stratumClient) error {
+    responseBytes, err := json.Marshal(response)
+    if err != nil {
+        log.Printf("Error marshaling response for client %s: %v", client.ip, err)
+        return err
+    }
+
+    // Add newline to response as per stratum protocol
+    responseBytes = append(responseBytes, '\n')
+
+    _, err = client.connection.Write(responseBytes)
+    if err != nil {
+        log.Printf("Error writing response to client %s: %v", client.ip, err)
+        return err
+    }
+
+    return nil
 }
