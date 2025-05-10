@@ -6,7 +6,7 @@ type sessionMap map[string]*stratumClient
 
 var (
     sessions     sessionMap
-    sessionMutex sync.RWMutex
+    sessionsMutex sync.RWMutex  // Changed from sessionMutex to sessionsMutex
 )
 
 func initiateSessions() {
@@ -14,13 +14,13 @@ func initiateSessions() {
 }
 
 func addSession(client *stratumClient) {
-    sessionMutex.Lock()
-    defer sessionMutex.Unlock()
+    sessionsMutex.Lock()
+    defer sessionsMutex.Unlock()
     sessions[client.sessionID] = client
 }
 
 func removeSession(client *stratumClient) {
-    sessionMutex.Lock()
-    defer sessionMutex.Unlock()
+    sessionsMutex.Lock()
+    defer sessionsMutex.Unlock()
     delete(sessions, client.sessionID)
 }
