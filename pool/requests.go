@@ -46,19 +46,13 @@ func miningSetDifficulty(difficulty float64) stratumRequest {
 	return request
 }
 
-type stratumResponse struct {
-    ID     json.RawMessage     `json:"id"`
-    Result interface{}         `json:"result"`
-    Error  interface{}         `json:"error"`
-}
-
-// Remove the stratumResponse struct definition
+// Remove the stratumResponse struct entirely
 
 func (p *PoolServer) handleStratumRequest(client *stratumClient, req stratumRequest) error {
     switch req.Method {
     case "mining.configure":
         response := stratumResponse{
-            ID: req.Id,    // Changed from Id to ID
+            ID: req.Id,
             Result: map[string]interface{}{
                 "version-rolling": false,
                 "minimum-difficulty": true,
