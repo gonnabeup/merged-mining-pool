@@ -3,7 +3,6 @@ package pool
 import (
     "designs.capital/dogepool/bitcoin"
     "log"
-    "encoding/hex"
 )
 
 const (
@@ -44,8 +43,9 @@ func validateAndWeighShare(primaryBlockTemplate *bitcoin.BitcoinBlock, auxBlock 
         return shareInvalid, shareDifficulty
     }
 
-    // Get network difficulty from node
-    networkDiff := primaryBlockTemplate.Template.Difficulty
+    // Get network difficulty from target bits since Template doesn't have Difficulty field
+    networkTarget := bitcoin.Target(primaryBlockTemplate.Template.Bits)
+    networkDiff, _ := networkTarget.ToDifficulty()
     if shareDifficulty >= networkDiff {
         return shareBlock, shareDifficulty
     }
