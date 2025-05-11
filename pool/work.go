@@ -243,34 +243,4 @@ func (pool *PoolServer) generateWorkFromCache(refresh bool) (bitcoin.Work, error
 	return work, nil
 }
 
-func validateAndWeighShare(primaryBlockTemplate *bitcoin.BitcoinBlock, auxBlock *bitcoin.AuxBlock, poolDifficulty float64) (shareStatus, float64) {
-    // Add debug logging
-    log.Printf("Validating share - Pool Difficulty: %f", poolDifficulty)
-    
-    // Add header hash logging
-    headerHash, err := primaryBlockTemplate.Chain.HeaderDigest(primaryBlockTemplate.header)
-    if err != nil {
-        log.Printf("Error calculating header digest: %v", err)
-        return shareInvalid, 0
-    }
-    log.Printf("Header hash: %s", headerHash)
-    
-    // Calculate share difficulty
-    target := bitcoin.HashToTarget(headerHash)
-    shareDifficulty, err := target.ToDifficulty()
-    if err != nil {
-        log.Printf("Error calculating share difficulty: %v", err)
-        return shareInvalid, 0
-    }
-    
-    log.Printf("Share difficulty: %f, Pool difficulty: %f", shareDifficulty, poolDifficulty)
-    
-    // Validate against pool difficulty
-    if shareDifficulty < poolDifficulty {
-        log.Printf("Share rejected - Difficulty too low (share: %f < pool: %f)", 
-                  shareDifficulty, poolDifficulty)
-        return shareInvalid, shareDifficulty
-    }
-
-    // Rest of the validation logic...
-}
+// Remove the duplicate validateAndWeighShare function that was here

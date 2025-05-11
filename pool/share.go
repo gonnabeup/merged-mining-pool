@@ -4,6 +4,7 @@ import (
 	"designs.capital/dogepool/bitcoin"
 	"log"
 	"math/big"
+	"encoding/hex"
 )
 
 const (
@@ -22,32 +23,37 @@ var statusMap = map[int]string{
 }
 
 func validateAndWeighShare(primaryBlockTemplate *bitcoin.BitcoinBlock, auxBlock *bitcoin.AuxBlock, poolDifficulty float64) (int, float64) {
-    // Add debug logging
     log.Printf("Validating share - Pool Difficulty: %f", poolDifficulty)
     
-    // Add header hash logging
-    headerHash, err := primaryBlockTemplate.HeaderDigest()
+    headerHash, err := primaryBlockTemplate.chain.HeaderDigest(primaryBlockTemplate.GetHeader())
     if err != nil {
         log.Printf("Error calculating header digest: %v", err)
         return shareInvalid, 0
     }
     log.Printf("Header hash: %s", headerHash)
     
-    // Calculate share difficulty
-    hashBig := new(big.Int).SetBytes([]byte(headerHash))
-    shareDifficulty := bitcoin.CalculateDifficulty(hashBig)
+    // Convert hex string to bytes
+    hashBytes, err := hex.DecodeString(headerHash)
+    if err != nil {
+        log.Printf("Error decoding hash: %v", err)
+        return shareInvalid, 0
+    }
+    
+    // Calculate difficulty from hash
+    hashBig := new(big.Int).SetBytes(hashBytes)
+    diff := bitcoin.DifficultyFromBits(primaryBlockTemplate.GetBits())
+    shareDifficulty := float64(diff.Int64())
     
     log.Printf("Share difficulty: %f, Pool difficulty: %f", shareDifficulty, poolDifficulty)
     
-    // Validate against pool difficulty
     if shareDifficulty < poolDifficulty {
         log.Printf("Share rejected - Difficulty too low (share: %f < pool: %f)", 
                   shareDifficulty, poolDifficulty)
         return shareInvalid, shareDifficulty
     }
 
-    // Check if this could be a block
-    if shareDifficulty >= primaryBlockTemplate.NetworkDifficulty() {
+    networkDiff := primaryBlockTemplate.chain.GetNetworkDifficulty()
+    if shareDifficulty >= networkDiff {
         return shareBlock, shareDifficulty
     }
 
