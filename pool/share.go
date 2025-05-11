@@ -25,9 +25,8 @@ var statusMap = map[int]string{
 func validateAndWeighShare(primaryBlockTemplate *bitcoin.BitcoinBlock, auxBlock *bitcoin.AuxBlock, poolDifficulty float64) (int, float64) {
     log.Printf("Validating share - Pool Difficulty: %f", poolDifficulty)
     
-    // Use Header() method instead of accessing header field directly
-    header := primaryBlockTemplate.Header()
-    headerHash, err := primaryBlockTemplate.ChainName()
+    // Get header hash using chain's digest function
+    headerHash, err := primaryBlockTemplate.chain.HeaderDigest(primaryBlockTemplate.header)
     if err != nil {
         log.Printf("Error calculating header digest: %v", err)
         return shareInvalid, 0
@@ -41,8 +40,7 @@ func validateAndWeighShare(primaryBlockTemplate *bitcoin.BitcoinBlock, auxBlock 
         return shareInvalid, 0
     }
     
-    // Calculate difficulty from hash
-    hashBig := new(big.Int).SetBytes(hashBytes)
+    // Calculate difficulty from target bits
     target := bitcoin.Target(primaryBlockTemplate.Template.Bits)
     shareDifficulty, _ := target.ToDifficulty()
     
@@ -54,7 +52,8 @@ func validateAndWeighShare(primaryBlockTemplate *bitcoin.BitcoinBlock, auxBlock 
         return shareInvalid, shareDifficulty
     }
 
-    networkDiff := primaryBlockTemplate.Template.NetworkDifficulty
+    // Get network difficulty from chain
+    networkDiff := primaryBlockTemplate.chain.NetworkDifficulty()
     if shareDifficulty >= networkDiff {
         return shareBlock, shareDifficulty
     }
