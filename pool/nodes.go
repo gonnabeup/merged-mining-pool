@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strings"  // Add missing import
+	"strings"
 
 	"designs.capital/dogepool/bitcoin"
 	"designs.capital/dogepool/rpc"
@@ -109,7 +109,7 @@ func (p *PoolServer) submitBlockToChain(block *bitcoin.BitcoinBlock) error {
     primaryNode := p.GetPrimaryNode()
     blockHex := block.ToHex()
     
-    response, err := primaryNode.RPC.SubmitBlock(blockHex)
+    response, err := primaryNode.RPC.SubmitBlock([]interface{}{blockHex})
     if err != nil {
         if strings.Contains(err.Error(), "high-hash") {
             log.Printf("Block rejected due to high hash value: %s", err)
@@ -120,4 +120,51 @@ func (p *PoolServer) submitBlockToChain(block *bitcoin.BitcoinBlock) error {
     
     log.Printf("Successfully submitted block to chain: %s", response)
     return nil
+}
+
+type hashBlockResponse struct {
+    blockChainName    string
+    previousBlockHash string
+    blockHashCounter  uint32
+}
+
+func (p *PoolServer) createZMQSubscriptionToHashBlock(blockChainName string, hashBlockChannel chan hashBlockResponse) (zmq4.Socket, error) {
+    sub := zmq4.NewSub(context.Background())
+
+    url := p.activeNodes[blockChainName].NotifyURL
+    err := sub.Dial(url)
+    if err != nil {
+        return sub, err
+    }
+
+    err = sub.SetOption(zmq4.OptionSubscribe, "hashblock")
+    if err != nil {
+        return sub, err
+    }
+
+    go func() {
+        for {
+            msg, err := sub.Recv()
+            if err != nil {
+                log.Printf("ZMQ receive error: %v", err)
+                continue
+            }
+
+            if len(msg.Frames) > 2 {
+                var blockHashCounter uint32
+                blockHashCounter |= uint32(msg.Frames[2][0])
+                blockHashCounter |= uint32(msg.Frames[2][1]) << 8
+                blockHashCounter |= uint32(msg.Frames[2][2]) << 16
+                blockHashCounter |= uint32(msg.Frames[2][3]) << 24
+
+                hashBlockChannel <- hashBlockResponse{
+                    blockChainName:    blockChainName,
+                    previousBlockHash: hex.EncodeToString(msg.Frames[1]),
+                    blockHashCounter:  blockHashCounter,
+                }
+            }
+        }
+    }()
+
+    return sub, nil
 }

@@ -267,3 +267,28 @@ func (pool *PoolServer) generateWorkFromCache(refresh bool) (bitcoin.Work, error
 
 	return work, nil
 }
+
+// Add submitAuxBlock method
+func (p *PoolServer) submitAuxBlock(primaryBlock bitcoin.BitcoinBlock, aux1Block bitcoin.AuxBlock) error {
+    auxpow := bitcoin.MakeAuxPow(primaryBlock)
+    success, err := p.GetAux1Node().RPC.SubmitAuxBlock(aux1Block.Hash, auxpow.Serialize())
+    if !success {
+        nodeName := p.GetAux1Node().ChainName
+        m := fmt.Sprintf("⚠️  %v node failed to submit aux block: %v", nodeName, err.Error())
+        return errors.New(m)
+    }
+    return err
+}
+
+// Add CheckAndRecoverRPCs method
+func (p *PoolServer) CheckAndRecoverRPCs() error {
+    var err error
+    for coin, manager := range p.rpcManagers {
+        err = manager.CheckAndRecoverRPCs()
+        if err != nil {
+            coinError := errors.New(coin)
+            return errors.Join(coinError, err)
+        }
+    }
+    return nil
+}
