@@ -263,7 +263,9 @@ func miningSubmit(request *stratumRequest, client *stratumClient, pool *PoolServ
 // Use vardiff min_diff instead of pool_difficulty
 difficulty := pool.config.VarDiff.MinDiff
 if difficulty == 0 {
-    difficulty = 200000 // Default minimum difficulty
+    difficulty = 200000
 }
 
 client.queueRequest(miningSetDifficulty(difficulty))
+
+return true, nil
