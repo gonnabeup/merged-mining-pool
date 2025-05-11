@@ -215,15 +215,26 @@ func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumCl
 		}
 	}
 
+	// Fix type conversion for BitcoinBlock
+	primaryBlockTemplatePtr := &primaryBlockTemplate
+
+	// Update all submitBlockToChain calls to use the pointer
+	if shareStatus >= aux1Candidate {
+	    err = p.submitBlockToChain(primaryBlockTemplatePtr)
+	    if err != nil {
+	        return err
+	    }
+	}
+
 	if shareStatus == dualCandidate || shareStatus == primaryCandidate {
-		err = p.submitBlockToChain(primaryBlockTemplate)
+		err = p.submitBlockToChain(primaryBlockTemplatePtr)
 		if err != nil {
 			// Try to submit on different node
 			err = p.rpcManagers[p.config.GetPrimary()].CheckAndRecoverRPCs()
 			if err != nil {
 				return err
 			}
-			err = p.submitBlockToChain(primaryBlockTemplate)
+			err = p.submitBlockToChain(primaryBlockTemplatePtr)
 		}
 
 		if err != nil {
