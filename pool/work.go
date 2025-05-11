@@ -209,7 +209,7 @@ func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumCl
 			if err != nil {
 				return err
 			}
-			err = p.submitBlockToChain(primaryBlockTemplate)
+			err = p.submitBlockToChain(&primaryBlockTemplate)
 		}
 
 		if err != nil {
