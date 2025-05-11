@@ -6,14 +6,14 @@ import (
 
 type BitcoinBlock struct {
 	Template             *Template
-	reversePrevBlockHash string
-	coinbaseInitial      string
-	coinbaseFinal        string
-	merkleSteps          []string
-	coinbase             string
-	header               string
-	hash                 string
-	chain                Blockchain
+	ReversePrevBlockHash string
+	CoinbaseInitial      string
+	CoinbaseFinal        string
+	MerkleSteps          []string
+	Coinbase             string
+	Header               string
+	Hash                 string
+	Chain                Blockchain
 }
 
 func (b BitcoinBlock) ChainName() string {

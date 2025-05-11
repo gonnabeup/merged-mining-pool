@@ -70,17 +70,17 @@ func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumCl
 	}
 
 	// Create a pointer to the block template
-	blockPtr := &bitcoin.BitcoinBlock{
-		Template:             primaryBlockTemplate.Template,
-		reversePrevBlockHash: primaryBlockTemplate.reversePrevBlockHash,
-		coinbaseInitial:      primaryBlockTemplate.coinbaseInitial,
-		coinbaseFinal:       primaryBlockTemplate.coinbaseFinal,
-		merkleSteps:         primaryBlockTemplate.merkleSteps,
-		coinbase:            primaryBlockTemplate.coinbase,
-		header:              primaryBlockTemplate.header,
-		hash:                primaryBlockTemplate.hash,
-		chain:               primaryBlockTemplate.chain,
-	}
+    blockPtr := &bitcoin.BitcoinBlock{
+        Template:             primaryBlockTemplate.Template,
+        ReversePrevBlockHash: primaryBlockTemplate.ReversePrevBlockHash,
+        CoinbaseInitial:      primaryBlockTemplate.CoinbaseInitial,
+        CoinbaseFinal:       primaryBlockTemplate.CoinbaseFinal,
+        MerkleSteps:         primaryBlockTemplate.MerkleSteps,
+        Coinbase:            primaryBlockTemplate.Coinbase,
+        Header:              primaryBlockTemplate.Header,
+        Hash:                primaryBlockTemplate.Hash,
+        Chain:               primaryBlockTemplate.Chain,
+    }
 
 	// Update all submitBlockToChain calls to use blockPtr
 	if shareStatus >= aux1Candidate {
