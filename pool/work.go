@@ -93,7 +93,7 @@ func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumCl
 	// Add debug logging for header
 	log.Printf("Generated header: %s", header)
 
-	shareStatus, shareDifficulty := validateAndWeighShare(&primaryBlockTemplate, auxBlock, minerAddress, p.config.PoolDifficulty)
+	shareStatus, shareDifficulty := validateAndWeighShare(&primaryBlockTemplate, auxBlock, minerAddress)
 
 	// Add debug logging for validation results
 	log.Printf("Share validation - Status: %d, Difficulty: %f", shareStatus, shareDifficulty)

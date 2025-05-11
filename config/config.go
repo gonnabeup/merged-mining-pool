@@ -65,14 +65,23 @@ type PayoutsConfig struct {
 	Chains   `json:"chains"`
 }
 
+type VarDiffConfig struct {
+	Enabled         bool    `json:"enabled"`
+	MinDiff         float64 `json:"min_diff"`
+	MaxDiff         float64 `json:"max_diff"`
+	TargetTime      int     `json:"target_time"`
+	RetargetTime    int     `json:"retarget_time"`
+	VariancePercent float64 `json:"variance_percent"`
+}
+
 type Config struct {
 	PoolName           string                   `json:"pool_name"`
 	BlockSignature     string                   `json:"block_signature"`
-	BlockchainNodes    blockChainNodesConfigMap `json:"blockchains"` // Map order in this config file determines primary vs aux nodes.
+	BlockchainNodes    blockChainNodesConfigMap `json:"blockchains"`
 	Port               string                   `json:"port"`
 	MaxConnections     int                      `json:"max_connections"`
 	ConnectionTimeout  string                   `json:"connection_timeout"`
-	PoolDifficulty     float64                  `json:"pool_difficulty"`
+	VarDiff            VarDiffConfig            `json:"vardiff"`
 	BlockChainOrder    `json:"merged_blockchain_order"`
 	ShareFlushInterval string        `json:"share_flush_interval"`
 	HashrateWindow     string        `json:"hashrate_window"`
