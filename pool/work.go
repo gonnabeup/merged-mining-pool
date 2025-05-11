@@ -93,8 +93,14 @@ func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumCl
 	// Add debug logging for header
 	log.Printf("Generated header: %s", header)
 
-	shareStatus, shareDifficulty := validateAndWeighShare(&primaryBlockTemplate, auxBlock, minerAddress)
+	// Use vardiff min_diff instead of pool_difficulty
+	difficulty := p.config.VarDiff.MinDiff
+	if difficulty == 0 {
+		difficulty = 200000 // Default minimum difficulty
+	}
 
+	shareStatus, shareDifficulty := validateAndWeighShare(&primaryBlockTemplate, auxBlock, minerAddress)
+	
 	// Add debug logging for validation results
 	log.Printf("Share validation - Status: %d, Difficulty: %f", shareStatus, shareDifficulty)
 

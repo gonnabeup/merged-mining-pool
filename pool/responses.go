@@ -259,3 +259,11 @@ func miningSubmit(request *stratumRequest, client *stratumClient, pool *PoolServ
 }
 
 // Remove the entire sendPacket function since it's already defined in network.go
+
+// Use vardiff min_diff instead of pool_difficulty
+difficulty := pool.config.VarDiff.MinDiff
+if difficulty == 0 {
+    difficulty = 200000 // Default minimum difficulty
+}
+
+client.queueRequest(miningSetDifficulty(difficulty))

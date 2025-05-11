@@ -2,10 +2,31 @@ package pool
 
 import (
     "designs.capital/dogepool/bitcoin"
+    "designs.capital/dogepool/config"
     "log"
     "time"
     "sync"
 )
+
+// Share status constants
+const (
+    shareInvalid = iota
+    shareValid
+    shareBlock
+    primaryCandidate
+    aux1Candidate
+    dualCandidate
+)
+
+type minerDifficulty struct {
+    difficulty     float64
+    lastShareTime  time.Time
+    lastRetarget   time.Time
+    shareCount     int
+}
+
+var minerDiffs = make(map[string]*minerDifficulty)
+var diffLock sync.RWMutex
 
 // VarDiff configuration from pool config
 var (
