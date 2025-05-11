@@ -1,7 +1,8 @@
+package bitcoin
+
 import (
 	"log"
 )
-package bitcoin
 
 type BitcoinBlock struct {
 	Template             *Template
