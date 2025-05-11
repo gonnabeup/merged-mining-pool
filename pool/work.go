@@ -70,24 +70,16 @@ func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumCl
 	}
 
 	// Create a pointer to the block template
-    blockPtr := &bitcoin.BitcoinBlock{
-        Template:             primaryBlockTemplate.Template,
-        ReversePrevBlockHash: primaryBlockTemplate.ReversePrevBlockHash,
-        CoinbaseInitial:      primaryBlockTemplate.CoinbaseInitial,
-        CoinbaseFinal:       primaryBlockTemplate.CoinbaseFinal,
-        MerkleSteps:         primaryBlockTemplate.MerkleSteps,
-        Coinbase:            primaryBlockTemplate.Coinbase,
-        Header:              primaryBlockTemplate.Header,
-        Hash:                primaryBlockTemplate.Hash,
-        Chain:               primaryBlockTemplate.Chain,
-    }
-
-	// Update all submitBlockToChain calls to use blockPtr
-	if shareStatus >= aux1Candidate {
-		err = p.submitBlockToChain(blockPtr)
-		if err != nil {
-			return err
-		}
+	blockPtr := &bitcoin.BitcoinBlock{
+		Template:             primaryBlockTemplate.Template,
+		ReversePrevBlockHash: primaryBlockTemplate.ReversePrevBlockHash,
+		CoinbaseInitial:      primaryBlockTemplate.CoinbaseInitial,
+		CoinbaseFinal:        primaryBlockTemplate.CoinbaseFinal,
+		MerkleSteps:          primaryBlockTemplate.MerkleSteps,
+		Coinbase:             primaryBlockTemplate.Coinbase,
+		Header:               primaryBlockTemplate.Header,
+		Hash:                 primaryBlockTemplate.Hash,
+		Chain:                primaryBlockTemplate.Chain,
 	}
 
 	auxBlock := p.templates.GetAux1()
@@ -111,7 +103,7 @@ func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumCl
 
 	// Add debug logging for share components
 	log.Printf("Share components - Height: %d, Nonce: %s, Extranonce2: %s, NonceTime: %s", 
-               primaryBlockHeight, nonce, extranonce2, nonceTime)
+		primaryBlockHeight, nonce, extranonce2, nonceTime)
 
 	extranonce := client.extranonce1 + extranonce2
 
@@ -140,7 +132,15 @@ func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumCl
 	}
 
 	shareStatus, shareDifficulty := validateAndWeighShare(&primaryBlockTemplate, auxBlock, minerAddress)
-	
+
+	// Now use shareStatus and err (if needed) after they are defined
+	if shareStatus >= aux1Candidate {
+		err := p.submitBlockToChain(blockPtr)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Add debug logging for validation results
 	log.Printf("Share validation - Status: %d, Difficulty: %f, Current Difficulty: %f", 
                shareStatus, shareDifficulty, currentDiff)
