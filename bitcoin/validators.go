@@ -1,8 +1,9 @@
 package bitcoin
 
-func (b BitcoinBlock) ValidMainnetAddress(address string) bool {
-	return b.chain.ValidMainnetAddress(address)
+func (b BitcoinBlock) ValidateMainnetAddress(address string) bool {
+    return b.Chain.ValidMainnetAddress(address)
 }
-func (b BitcoinBlock) ValidTestnetAddress(address string) bool {
-	return b.chain.ValidTestnetAddress(address)
+
+func (b BitcoinBlock) ValidateTestnetAddress(address string) bool {
+    return b.Chain.ValidTestnetAddress(address)
 }

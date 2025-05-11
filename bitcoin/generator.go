@@ -129,7 +129,7 @@ func (b *BitcoinBlock) Sum() (*big.Int, error) {
 		return nil, err
 	}
 
-	b.hash = digest
+	b.Hash = digest  // Changed from b.hash to b.Hash
 
 	digestBytes, err := hex.DecodeString(digest)
 	if err != nil {
@@ -140,7 +140,7 @@ func (b *BitcoinBlock) Sum() (*big.Int, error) {
 }
 
 func (b *BitcoinBlock) Submit() (string, error) {
-	if b.header == "" {
+	if b.Header == "" {  // Changed from b.header to b.Header
 		return "", errors.New("generate header first")
 	}
 
@@ -167,7 +167,7 @@ func debugMerkleSteps(block BitcoinBlock) {
 
 	fmt.Println()
 	fmt.Println("Steps")
-	for i, step := range block.merkleSteps {
+	for i, step := range block.MerkleSteps {  // Changed from block.merkleSteps to block.MerkleSteps
 		fmt.Println(i+1, step)
 	}
 	fmt.Println()

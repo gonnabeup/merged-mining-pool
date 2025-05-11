@@ -20,16 +20,15 @@ func (s *Submission) Serialize() string {
 }
 
 func (b *BitcoinBlock) createSubmissionHex() string {
-	transactionCount := uint(len(b.Template.Transactions) + 1) // 1 for coinbase
+	transactionCount := uint(len(b.Template.Transactions) + 1)
 
 	submission := Submission{
-		Header:            b.header,
+		Header:            b.Header,    // Changed from b.header to b.Header
 		TransactionCount:  varUint(transactionCount),
-		Coinbase:          b.coinbase,
+		Coinbase:          b.Coinbase,  // Changed from b.coinbase to b.Coinbase
 		TransactionBuffer: b.buildTransactionBuffer(),
 	}
 
-	// submissionDebugOutput(submission.Header, submission.TransactionCount, submission.Coinbase, submission.TransactionBuffer, submission.Serialize())
 	return submission.Serialize()
 }
 
