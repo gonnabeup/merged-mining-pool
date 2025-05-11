@@ -2,11 +2,14 @@ package pool
 
 import (
 	"designs.capital/dogepool/bitcoin"
+	"log"
+	"math/big"
 )
 
 const (
 	shareInvalid = iota
 	shareValid
+	shareBlock
 	primaryCandidate
 	aux1Candidate
 	dualCandidate
@@ -23,7 +26,7 @@ func validateAndWeighShare(primaryBlockTemplate *bitcoin.BitcoinBlock, auxBlock 
     log.Printf("Validating share - Pool Difficulty: %f", poolDifficulty)
     
     // Add header hash logging
-    headerHash, err := primaryBlockTemplate.chain.HeaderDigest(primaryBlockTemplate.header)
+    headerHash, err := primaryBlockTemplate.HeaderDigest()
     if err != nil {
         log.Printf("Error calculating header digest: %v", err)
         return shareInvalid, 0
@@ -31,8 +34,8 @@ func validateAndWeighShare(primaryBlockTemplate *bitcoin.BitcoinBlock, auxBlock 
     log.Printf("Header hash: %s", headerHash)
     
     // Calculate share difficulty
-    target := bitcoin.HashToUint256(headerHash)
-    shareDifficulty := target.Difficulty()
+    hashBig := new(big.Int).SetBytes([]byte(headerHash))
+    shareDifficulty := bitcoin.CalculateDifficulty(hashBig)
     
     log.Printf("Share difficulty: %f, Pool difficulty: %f", shareDifficulty, poolDifficulty)
     
@@ -44,7 +47,7 @@ func validateAndWeighShare(primaryBlockTemplate *bitcoin.BitcoinBlock, auxBlock 
     }
 
     // Check if this could be a block
-    if shareDifficulty >= primaryBlockTemplate.chain.NetworkDifficulty() {
+    if shareDifficulty >= primaryBlockTemplate.NetworkDifficulty() {
         return shareBlock, shareDifficulty
     }
 
