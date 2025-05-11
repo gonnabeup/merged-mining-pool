@@ -54,9 +54,37 @@ func handleStratumRequest(request *stratumRequest, client *stratumClient, pool *
     
     switch request.Method {
     case "mining.configure":
+        // Parse configure params
+        var params []interface{}
+        err := json.Unmarshal(request.Params, &params)
+        if err != nil {
+            return nil, err
+        }
+
+        // Check if version-rolling is requested
+        features, ok := params[0].([]interface{})
+        if ok {
+            for _, feature := range features {
+                if feature == "version-rolling" {
+                    // Return the same mask that miners request
+                    return stratumResponse{
+                        ID: request.Id,
+                        Result: map[string]interface{}{
+                            "version-rolling": true,
+                            "version-rolling.mask": "1fffe000",
+                            // Keep other features
+                            "minimum-difficulty": true,
+                            "subscribe-extranonce": true,
+                        },
+                        Error: nil,
+                    }, nil
+                }
+            }
+        }
+
+        // Default response if no version-rolling
         return stratumResponse{
             ID: request.Id,
-            Version: "2.0",
             Result: map[string]interface{}{
                 "version-rolling": false,
                 "minimum-difficulty": true,
@@ -64,6 +92,7 @@ func handleStratumRequest(request *stratumRequest, client *stratumClient, pool *
             },
             Error: nil,
         }, nil
+
     case "mining.subscribe":
         return miningSubscribe(request, client)
     case "mining.authorize":
