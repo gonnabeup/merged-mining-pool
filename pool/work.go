@@ -68,6 +68,28 @@ func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumCl
 	if primaryBlockTemplate.Template == nil {
 		return errors.New("primary block template not yet set")
 	}
+
+	// Create a pointer to the block template
+	blockPtr := &bitcoin.BitcoinBlock{
+		Template:             primaryBlockTemplate.Template,
+		reversePrevBlockHash: primaryBlockTemplate.reversePrevBlockHash,
+		coinbaseInitial:      primaryBlockTemplate.coinbaseInitial,
+		coinbaseFinal:       primaryBlockTemplate.coinbaseFinal,
+		merkleSteps:         primaryBlockTemplate.merkleSteps,
+		coinbase:            primaryBlockTemplate.coinbase,
+		header:              primaryBlockTemplate.header,
+		hash:                primaryBlockTemplate.hash,
+		chain:               primaryBlockTemplate.chain,
+	}
+
+	// Update all submitBlockToChain calls to use blockPtr
+	if shareStatus >= aux1Candidate {
+		err = p.submitBlockToChain(blockPtr)
+		if err != nil {
+			return err
+		}
+	}
+
 	auxBlock := p.templates.GetAux1()
 
 	// Add debug logging
@@ -227,14 +249,14 @@ func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumCl
 	}
 
 	if shareStatus == dualCandidate || shareStatus == primaryCandidate {
-		err = p.submitBlockToChain(primaryBlockTemplatePtr)
+		err = p.submitBlockToChain(blockPtr)
 		if err != nil {
 			// Try to submit on different node
 			err = p.rpcManagers[p.config.GetPrimary()].CheckAndRecoverRPCs()
 			if err != nil {
 				return err
 			}
-			err = p.submitBlockToChain(primaryBlockTemplatePtr)
+			err = p.submitBlockToChain(blockPtr)
 		}
 
 		if err != nil {
