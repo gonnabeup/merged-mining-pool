@@ -61,9 +61,9 @@ func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumCl
 	}
 	auxBlock := p.templates.GetAux1()
 
-	var err error
+	// Add debug logging
+	log.Printf("Received share from %s [%s]: %+v", client.ip, client.userAgent, share)
 
-	// TODO - this key and interface isn't very invertable..
 	workerString := share[0].(string)
 	workerStringParts := strings.Split(workerString, ".")
 	if len(workerStringParts) < 2 {
@@ -78,17 +78,25 @@ func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumCl
 	extranonce2 := share[extranonce2Slot].(string)
 	nonceTime := share[primaryBlockTemplate.NonceTimeSubmissionSlot()].(string)
 
-	// TODO - validate input
+	// Add debug logging for share components
+	log.Printf("Share components - Height: %d, Nonce: %s, Extranonce2: %s, NonceTime: %s", 
+               primaryBlockHeight, nonce, extranonce2, nonceTime)
 
 	extranonce := client.extranonce1 + extranonce2
 
-	_, err = primaryBlockTemplate.MakeHeader(extranonce, nonce, nonceTime)
-
+	header, err := primaryBlockTemplate.MakeHeader(extranonce, nonce, nonceTime)
 	if err != nil {
+		log.Printf("Error making header: %v", err)
 		return err
 	}
 
+	// Add debug logging for header
+	log.Printf("Generated header: %s", header)
+
 	shareStatus, shareDifficulty := validateAndWeighShare(&primaryBlockTemplate, auxBlock, p.config.PoolDifficulty)
+
+	// Add debug logging for validation results
+	log.Printf("Share validation - Status: %d, Difficulty: %f", shareStatus, shareDifficulty)
 
 	heightMessage := fmt.Sprintf("%v", primaryBlockHeight)
 	if shareStatus == dualCandidate {
