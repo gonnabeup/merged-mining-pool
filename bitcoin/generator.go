@@ -71,31 +71,31 @@ func (b *BitcoinBlock) MakeHeader(extranonce, nonce, nonceTime string) (string, 
 		CoinbaseFinal:  b.CoinbaseFinal,
 	}
 
-	b.coinbase = coinbase.Serialize()
+	b.Coinbase = coinbase.Serialize()
 	coinbaseHashed, err := b.CoinbaseHashed()
 	if err != nil {
 		return "", err
 	}
 
-	merkleRoot, err := makeHeaderMerkleRoot(coinbaseHashed, b.merkleSteps)
+	merkleRoot, err := makeHeaderMerkleRoot(coinbaseHashed, b.MerkleSteps)
 	if err != nil {
 		return "", err
 	}
 
 	t := b.Template
 
-	b.header, err = blockHeader(uint(t.Version), t.PrevBlockHash, merkleRoot, nonceTime, t.Bits, nonce)
+	b.Header, err = blockHeader(uint(t.Version), t.PrevBlockHash, merkleRoot, nonceTime, t.Bits, nonce)
 
 	if err != nil {
 		return "", err
 	}
 
-	return b.header, nil
+	return b.Header, nil
 }
 
 func (b *BitcoinBlock) HeaderHashed() (string, error) {
 	// TODO - break out headerdigest vs blockdigest
-	header, err := b.chain.CoinbaseDigest(b.header)
+	header, err := b.Chain.CoinbaseDigest(b.Header)
 	if err != nil {
 		return "", err
 	}
@@ -108,18 +108,18 @@ func (b *BitcoinBlock) HeaderHashed() (string, error) {
 }
 
 func (b *BitcoinBlock) CoinbaseHashed() (string, error) {
-	return b.chain.CoinbaseDigest(b.coinbase)
+	return b.Chain.CoinbaseDigest(b.Coinbase)
 }
 
 func (b *BitcoinBlock) Sum() (*big.Int, error) {
-	if b.chain == nil {
+	if b.Chain == nil {
 		return nil, errors.New("calculateSum: Missing blockchain interface")
 	}
-	if b.header == "" {
+	if b.Header == "" {
 		return nil, errors.New("generate header first")
 	}
 
-	digest, err := b.chain.HeaderDigest(b.header)
+	digest, err := b.Chain.HeaderDigest(b.Header)
 	if err != nil {
 		return nil, err
 	}
