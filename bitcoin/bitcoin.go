@@ -17,17 +17,17 @@ type BitcoinBlock struct {
 }
 
 func (b BitcoinBlock) ChainName() string {
-	if b.chain == nil {
+	if b.Chain == nil {
 		panic("Chain needs to be set")
 	}
-	return b.chain.ChainName()
+	return b.Chain.ChainName()
 }
 
 func (b *BitcoinBlock) init(chain Blockchain) {
 	if chain == nil {
 		panic("Chain cannot be null")
 	}
-	b.chain = chain
+	b.Chain = chain
 }
 
 func (b *BitcoinBlock) ToHex() string {

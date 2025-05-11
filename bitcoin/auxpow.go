@@ -31,17 +31,16 @@ type AuxPow struct {
 }
 
 func MakeAuxPow(parentBlock BitcoinBlock) AuxPow {
-	if parentBlock.hash == "" {
+	if parentBlock.Hash == "" {
 		panic("Set parent block hash first")
 	}
-	// debugAuxPow(parentBlock, makeParentMerkleBranch(parentBlock.merkleSteps), makeAuxChainMerkleBranch())
 
 	return AuxPow{
-		ParentCoinbase:       parentBlock.coinbase,
-		ParentHeaderHash:     parentBlock.hash,
-		ParentMerkleBranch:   makeParentMerkleBranch(parentBlock.merkleSteps),
+		ParentCoinbase:       parentBlock.Coinbase,
+		ParentHeaderHash:     parentBlock.Hash,
+		ParentMerkleBranch:   makeParentMerkleBranch(parentBlock.MerkleSteps),
 		auxMerkleBranch:      makeAuxChainMerkleBranch(),
-		ParentHeaderUnhashed: parentBlock.header,
+		ParentHeaderUnhashed: parentBlock.Header,
 	}
 }
 
@@ -94,11 +93,11 @@ func (am *AuxMerkleBranch) Serialize() string {
 
 func debugAuxPow(parentBlock BitcoinBlock, parentMerkle ParentMerkleBranch, auxchainMerkle AuxMerkleBranch) {
 	fmt.Println()
-	fmt.Println("coinbase", parentBlock.coinbase)
-	fmt.Println("hash", parentBlock.hash)
-	fmt.Println("merkleSteps", parentBlock.merkleSteps)
+	fmt.Println("coinbase", parentBlock.Coinbase)
+	fmt.Println("hash", parentBlock.Hash)
+	fmt.Println("merkleSteps", parentBlock.MerkleSteps)
 	fmt.Println("merkleDigested", parentMerkle.Serialize())
 	fmt.Println("chainmerklebranch", auxchainMerkle.Serialize())
-	fmt.Println("header", parentBlock.header)
+	fmt.Println("header", parentBlock.Header)
 	fmt.Println()
 }
