@@ -93,7 +93,7 @@ func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumCl
 	// Add debug logging for header
 	log.Printf("Generated header: %s", header)
 
-	shareStatus, shareDifficulty := validateAndWeighShare(&primaryBlockTemplate, auxBlock, p.config.PoolDifficulty)
+	shareStatus, shareDifficulty := validateAndWeighShare(&primaryBlockTemplate, auxBlock, minerAddress, p.config.PoolDifficulty)
 
 	// Add debug logging for validation results
 	log.Printf("Share validation - Status: %d, Difficulty: %f", shareStatus, shareDifficulty)
@@ -242,5 +242,3 @@ func (pool *PoolServer) generateWorkFromCache(refresh bool) (bitcoin.Work, error
 
 	return work, nil
 }
-
-// Remove the duplicate validateAndWeighShare function that was here
