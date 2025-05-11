@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"  // Add missing import
 
 	"designs.capital/dogepool/bitcoin"
 	"designs.capital/dogepool/rpc"
@@ -119,80 +120,4 @@ func (p *PoolServer) submitBlockToChain(block *bitcoin.BitcoinBlock) error {
     
     log.Printf("Successfully submitted block to chain: %s", response)
     return nil
-}
-
-func (p *PoolServer) submitAuxBlock(primaryBlock bitcoin.BitcoinBlock, aux1Block bitcoin.AuxBlock) error {
-	auxpow := bitcoin.MakeAuxPow(primaryBlock)
-	success, err := p.GetAux1Node().RPC.SubmitAuxBlock(aux1Block.Hash, auxpow.Serialize())
-	if !success {
-		nodeName := p.GetAux1Node().ChainName
-		m := "⚠️  %v node failed to submit aux block: %v"
-		m = fmt.Sprintf(m, nodeName, err.Error())
-		return errors.New(m)
-	}
-	return err
-}
-
-type hashBlockResponse struct {
-	blockChainName    string
-	previousBlockHash string
-	blockHashCounter  uint32
-}
-
-func (p *PoolServer) createZMQSubscriptionToHashBlock(blockChainName string, hashBlockChannel chan hashBlockResponse) (zmq4.Socket, error) {
-	sub := zmq4.NewSub(context.Background())
-
-	url := p.activeNodes[blockChainName].NotifyURL
-	err := sub.Dial(url)
-	if err != nil {
-		return sub, err
-	}
-
-	err = sub.SetOption(zmq4.OptionSubscribe, "hashblock")
-	if err != nil {
-		return sub, err
-	}
-
-	logErr := func(msg zmq4.Msg, err error) zmq4.Msg {
-		if err != nil {
-			log.Println(err)
-		}
-
-		return msg
-	}
-
-	go func() {
-		for {
-			msg := logErr(sub.Recv())
-
-			if len(msg.Frames) > 2 {
-				var blockHashCounter uint32
-				blockHashCounter |= uint32(msg.Frames[2][0])
-				blockHashCounter |= uint32(msg.Frames[2][1]) << 8
-				blockHashCounter |= uint32(msg.Frames[2][2]) << 16
-				blockHashCounter |= uint32(msg.Frames[2][3]) << 24
-
-				hashBlockChannel <- hashBlockResponse{
-					blockChainName:    blockChainName,
-					previousBlockHash: hex.EncodeToString(msg.Frames[1]),
-					blockHashCounter:  blockHashCounter,
-				}
-			}
-
-		}
-	}()
-
-	return sub, nil
-}
-
-func (p *PoolServer) CheckAndRecoverRPCs() error {
-	var err error
-	for coin, manager := range p.rpcManagers {
-		err = manager.CheckAndRecoverRPCs()
-		if err != nil {
-			coinError := errors.New(coin)
-			return errors.Join(coinError, err)
-		}
-	}
-	return nil
 }

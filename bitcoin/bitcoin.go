@@ -25,3 +25,12 @@ func (b *BitcoinBlock) init(chain Blockchain) {
 	}
 	b.chain = chain
 }
+
+func (b *BitcoinBlock) ToHex() string {
+    submission, err := b.Submit()
+    if err != nil {
+        log.Printf("Error converting block to hex: %v", err)
+        return ""
+    }
+    return submission
+}
