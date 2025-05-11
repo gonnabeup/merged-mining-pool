@@ -64,7 +64,11 @@ func validateAndWeighShare(primaryBlockTemplate *bitcoin.BitcoinBlock, auxBlock 
     
     // Calculate difficulty from target bits
     target := bitcoin.Target(primaryBlockTemplate.Template.Bits)
-    shareDifficulty, _ := target.ToDifficulty()
+    shareDifficulty, accuracy := target.ToDifficulty()
+    if shareDifficulty == 0 {
+        log.Printf("Error: Invalid share difficulty calculated from bits %s", primaryBlockTemplate.Template.Bits)
+        return shareInvalid, 0
+    }
     
     // Get updated difficulty for this miner
     currentDiff := getUpdatedDifficulty(minerAddr, shareDifficulty)
@@ -89,7 +93,11 @@ func validateAndWeighShare(primaryBlockTemplate *bitcoin.BitcoinBlock, auxBlock 
         if auxBlock != nil {
             // Check aux chain target
             auxTarget := bitcoin.Target(auxBlock.Target)
-            auxDiff, _ := auxTarget.ToDifficulty()
+            auxDiff, auxAccuracy := auxTarget.ToDifficulty()
+            if auxDiff == 0 {
+                log.Printf("Warning: Invalid aux difficulty calculated from target %s", auxBlock.Target)
+                return primaryCandidate, shareDifficulty
+            }
             if shareDifficulty >= auxDiff {
                 return dualCandidate, shareDifficulty
             }

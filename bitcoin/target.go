@@ -18,20 +18,32 @@ func (t *Target) ToBig() (*big.Int, bool) {
 }
 
 func (t *Target) ToDifficulty() (float64, big.Accuracy) {
-	highestTargetBig, success := new(big.Int).SetString(highestTarget, 16)
-	if !success {
-		panic("Failed to convert highest target value to big int")
-	}
-	highestTargetBigFloat := new(big.Float).SetInt(highestTargetBig)
+    // Add null check
+    if t == nil || *t == "" {
+        return 0, big.Exact
+    }
 
-	targetBig, success := t.ToBig()
-	if !success {
-		panic("Failed to convert target to big int")
-	}
-	targetBigFloat := new(big.Float).SetInt(targetBig)
-	difficulty := new(big.Float).Quo(highestTargetBigFloat, targetBigFloat)
+    highestTargetBig, success := new(big.Int).SetString(highestTarget, 16)
+    if !success {
+        panic("Failed to convert highest target value to big int")
+    }
+    highestTargetBigFloat := new(big.Float).SetInt(highestTargetBig)
 
-	return difficulty.Float64()
+    targetBig, success := t.ToBig()
+    if !success {
+        log.Printf("Warning: Failed to convert target %v to big int", string(*t))
+        return 0, big.Exact
+    }
+    
+    // Add check for zero target
+    if targetBig.Sign() == 0 {
+        return 0, big.Exact
+    }
+    
+    targetBigFloat := new(big.Float).SetInt(targetBig)
+    difficulty := new(big.Float).Quo(highestTargetBigFloat, targetBigFloat)
+
+    return difficulty.Float64()
 }
 
 func TargetFromDifficulty(difficulty float64) (Target, big.Accuracy) {
