@@ -3,6 +3,7 @@ package bitcoin
 import (
 	"errors"
 	"fmt"
+	"log"
 	"math/big"
 	"strconv"
 )
