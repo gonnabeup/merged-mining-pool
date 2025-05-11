@@ -1,3 +1,6 @@
+import (
+	"log"
+)
 package bitcoin
 
 type BitcoinBlock struct {
