@@ -27,7 +27,7 @@ func GenerateWork(template *Template, auxBlock *AuxBlock, chainName, arbitrary, 
 	block.init(GetChain(chainName))
 	block.Template = template
 
-	block.reversePrevBlockHash, err = reverseHex4Bytes(block.Template.PrevBlockHash)
+	block.ReversePrevBlockHash, err = reverseHex4Bytes(block.Template.PrevBlockHash)
 	if err != nil {
 		m := "invalid previous block hash hex: " + err.Error()
 		return nil, nil, errors.New(m)
@@ -37,19 +37,19 @@ func GenerateWork(template *Template, auxBlock *AuxBlock, chainName, arbitrary, 
 	arbitraryByteLength := uint(len(arbitraryBytes) + reservedArbitraryByteLength)
 	arbitraryHex := hex.EncodeToString(arbitraryBytes)
 
-	block.coinbaseInitial = block.Template.CoinbaseInitial(arbitraryByteLength).Serialize()
-	block.coinbaseFinal = arbitraryHex + block.Template.CoinbaseFinal(poolPayoutPubScriptKey).Serialize()
-	block.merkleSteps, err = block.Template.MerkleSteps()
+	block.CoinbaseInitial = block.Template.CoinbaseInitial(arbitraryByteLength).Serialize()
+	block.CoinbaseFinal = arbitraryHex + block.Template.CoinbaseFinal(poolPayoutPubScriptKey).Serialize()
+	block.MerkleSteps, err = block.Template.MerkleSteps()
 	if err != nil {
 		return nil, nil, err
 	}
 
 	work := make(Work, 8)
 	work[0] = fmt.Sprintf("%08x", jobCounter) // Job ID
-	work[1] = block.reversePrevBlockHash
-	work[2] = block.coinbaseInitial
-	work[3] = block.coinbaseFinal
-	work[4] = block.merkleSteps
+	work[1] = block.ReversePrevBlockHash
+	work[2] = block.CoinbaseInitial
+	work[3] = block.CoinbaseFinal
+	work[4] = block.MerkleSteps
 	work[5] = fmt.Sprintf("%08x", block.Template.Version)
 	work[6] = block.Template.Bits
 	work[7] = fmt.Sprintf("%x", block.Template.CurrentTime)
@@ -66,9 +66,9 @@ func (b *BitcoinBlock) MakeHeader(extranonce, nonce, nonceTime string) (string, 
 
 	var err error
 	coinbase := Coinbase{
-		CoinbaseInital: b.coinbaseInitial,
+		CoinbaseInital: b.CoinbaseInitial,
 		Arbitrary:      extranonce,
-		CoinbaseFinal:  b.coinbaseFinal,
+		CoinbaseFinal:  b.CoinbaseFinal,
 	}
 
 	b.coinbase = coinbase.Serialize()
