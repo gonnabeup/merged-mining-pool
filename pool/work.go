@@ -248,3 +248,12 @@ func (pool *PoolServer) generateWorkFromCache(refresh bool) (bitcoin.Work, error
 
 	return work, nil
 }
+
+var statusMap = map[int]string{
+    shareInvalid:      "Invalid",
+    shareValid:        "Valid",
+    shareBlock:        "Block",
+    primaryCandidate:  "Primary",
+    aux1Candidate:     "Aux1",
+    dualCandidate:     "Dual",
+}

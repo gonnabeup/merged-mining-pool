@@ -86,3 +86,52 @@ func validateAndWeighShare(primaryBlockTemplate *bitcoin.BitcoinBlock, auxBlock 
 
     return shareValid, shareDifficulty
 }
+
+func getUpdatedDifficulty(minerAddr string, shareDiff float64) float64 {
+    if !varDiffEnabled {
+        return minDifficulty
+    }
+
+    diffLock.Lock()
+    defer diffLock.Unlock()
+
+    now := time.Now()
+    diff, exists := minerDiffs[minerAddr]
+    if !exists {
+        minerDiffs[minerAddr] = &minerDifficulty{
+            difficulty:    minDifficulty,
+            lastShareTime: now,
+            lastRetarget:  now,
+            shareCount:    1,
+        }
+        return minDifficulty
+    }
+
+    diff.shareCount++
+    
+    // Check if it's time to retarget
+    if now.Sub(diff.lastRetarget).Seconds() >= float64(retargetTime) {
+        averageShareTime := now.Sub(diff.lastRetarget).Seconds() / float64(diff.shareCount)
+        
+        // Adjust difficulty based on share time
+        if averageShareTime < float64(targetShareTime)*(1-variancePercent/100.0) {
+            diff.difficulty *= 2
+        } else if averageShareTime > float64(targetShareTime)*(1+variancePercent/100.0) {
+            diff.difficulty /= 2
+        }
+
+        // Clamp difficulty
+        if diff.difficulty < minDifficulty {
+            diff.difficulty = minDifficulty
+        } else if diff.difficulty > maxDifficulty {
+            diff.difficulty = maxDifficulty
+        }
+
+        // Reset counters
+        diff.lastRetarget = now
+        diff.shareCount = 0
+    }
+
+    diff.lastShareTime = now
+    return diff.difficulty
+}

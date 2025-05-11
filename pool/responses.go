@@ -213,7 +213,13 @@ func miningAuthorize(request *stratumRequest, client *stratumClient, pool *PoolS
 		return reply, err
 	}
 
-	err = sendPacket(miningSetDifficulty(pool.config.PoolDifficulty), client) // Mining.Auth replies with three packets (2)
+	// Use vardiff settings instead of PoolDifficulty
+	difficulty := pool.config.VarDiff.MinDiff
+	if difficulty == 0 {
+		difficulty = 200000 // Default minimum difficulty
+	}
+
+	err = sendPacket(miningSetDifficulty(difficulty), client) // Mining.Auth replies with three packets (2)
 	if err != nil {
 		return reply, err
 	}
@@ -257,11 +263,3 @@ func miningSubmit(request *stratumRequest, client *stratumClient, pool *PoolServ
 
 	return response, nil
 }
-
-// Remove these lines that were outside of any function:
-// difficulty := pool.config.VarDiff.MinDiff
-// if difficulty == 0 {
-//     difficulty = 200000
-// }
-// client.queueRequest(miningSetDifficulty(difficulty))
-// return true, nil
