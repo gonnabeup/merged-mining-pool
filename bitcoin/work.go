@@ -16,5 +16,5 @@ func (b BitcoinBlock) Extranonce2SubmissionSlot() (slotID int, exists bool) {
 }
 
 func (b BitcoinBlock) ShareMultiplier() float64 {
-	return b.chain.ShareMultiplier()
+	return b.Chain.ShareMultiplier()
 }
