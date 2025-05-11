@@ -108,10 +108,20 @@ func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumCl
 		difficulty = 200000 // Default minimum difficulty
 	}
 
+	// Initialize difficulty from vardiff settings
+	currentDiff := getUpdatedDifficulty(minerAddress, 0)
+	if currentDiff == 0 {
+	    currentDiff = p.config.VarDiff.MinDiff
+	    if currentDiff == 0 {
+	        currentDiff = 200000 // Default minimum difficulty
+	    }
+	}
+
 	shareStatus, shareDifficulty := validateAndWeighShare(&primaryBlockTemplate, auxBlock, minerAddress)
 	
 	// Add debug logging for validation results
-	log.Printf("Share validation - Status: %d, Difficulty: %f", shareStatus, shareDifficulty)
+	log.Printf("Share validation - Status: %d, Difficulty: %f, Current Difficulty: %f", 
+               shareStatus, shareDifficulty, currentDiff)
 
 	heightMessage := fmt.Sprintf("%v", primaryBlockHeight)
 	if shareStatus == dualCandidate {

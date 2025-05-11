@@ -104,25 +104,21 @@ func (pool *PoolServer) listenForBlockNotifications() error {
 }
 
 // Ultimate program OUTPUT
-func (p *PoolServer) submitBlockToChain(block bitcoin.BitcoinBlock) error {
-	submission, err := block.Submit()
-	if err != nil {
-		return err
-	}
-
-	submit := []any{
-		any(submission),
-	}
-	success, err := p.GetPrimaryNode().RPC.SubmitBlock(submit)
-
-	if !success || err != nil {
-		nodeName := p.GetPrimaryNode().ChainName
-		m := "⚠️  %v primary node rejection: %v"
-		m = fmt.Sprintf(m, nodeName, err.Error())
-		return errors.New(m)
-	}
-
-	return nil
+func (p *PoolServer) submitBlockToChain(block *bitcoin.BitcoinBlock) error {
+    primaryNode := p.GetPrimaryNode()
+    blockHex := block.ToHex()
+    
+    response, err := primaryNode.RPC.SubmitBlock(blockHex)
+    if err != nil {
+        if strings.Contains(err.Error(), "high-hash") {
+            log.Printf("Block rejected due to high hash value: %s", err)
+            return nil // Don't treat high-hash as an error, it's expected for some shares
+        }
+        return fmt.Errorf("error submitting block: %v", err)
+    }
+    
+    log.Printf("Successfully submitted block to chain: %s", response)
+    return nil
 }
 
 func (p *PoolServer) submitAuxBlock(primaryBlock bitcoin.BitcoinBlock, aux1Block bitcoin.AuxBlock) error {
