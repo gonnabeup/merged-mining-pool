@@ -10,12 +10,12 @@ import (
 
 // Share status constants
 const (
-    shareInvalid = iota
-    shareValid
-    shareBlock
-    primaryCandidate
-    aux1Candidate
-    dualCandidate
+    shareInvalid = iota  // 0
+    shareValid           // 1
+    shareBlock           // 2
+    primaryCandidate     // 3
+    aux1Candidate        // 4
+    dualCandidate        // 5
 )
 
 type minerDifficulty struct {
@@ -68,6 +68,9 @@ func validateAndWeighShare(primaryBlockTemplate *bitcoin.BitcoinBlock, auxBlock 
     
     // Get updated difficulty for this miner
     currentDiff := getUpdatedDifficulty(minerAddr, shareDifficulty)
+    if currentDiff == 0 {
+        currentDiff = minDifficulty // Ensure we never have 0 difficulty
+    }
     
     log.Printf("Share difficulty: %f, Current miner difficulty: %f", shareDifficulty, currentDiff)
     
@@ -80,8 +83,19 @@ func validateAndWeighShare(primaryBlockTemplate *bitcoin.BitcoinBlock, auxBlock 
     // Get network difficulty from target bits
     networkTarget := bitcoin.Target(primaryBlockTemplate.Template.Bits)
     networkDiff, _ := networkTarget.ToDifficulty()
+    
+    // Check if this is a block candidate
     if shareDifficulty >= networkDiff {
-        return shareBlock, shareDifficulty
+        if auxBlock != nil {
+            // Check aux chain target
+            auxTarget := bitcoin.Target(auxBlock.Target)
+            auxDiff, _ := auxTarget.ToDifficulty()
+            if shareDifficulty >= auxDiff {
+                return dualCandidate, shareDifficulty
+            }
+            return primaryCandidate, shareDifficulty
+        }
+        return primaryCandidate, shareDifficulty
     }
 
     return shareValid, shareDifficulty

@@ -54,6 +54,15 @@ func (p *PoolServer) fetchRpcBlockTemplatesAndCacheWork() error {
 }
 
 // Main OUTPUT
+var statusMap = map[int]string{
+    shareInvalid:      "Invalid",
+    shareValid:        "Valid",
+    shareBlock:        "Block",
+    primaryCandidate:  "Primary",
+    aux1Candidate:     "Aux1",
+    dualCandidate:     "Dual",
+}
+
 func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumClient) error {
 	primaryBlockTemplate := p.templates.GetPrimary()
 	if primaryBlockTemplate.Template == nil {
@@ -112,12 +121,12 @@ func (p *PoolServer) recieveWorkFromClient(share bitcoin.Work, client *stratumCl
 	}
 
 	if shareStatus == shareInvalid {
-		m := "❔ Invalid share for block %v from %v [%v] [%v]"
+		m := "❌ Invalid share for block %v from %v [%v] [%v]"
 		m = fmt.Sprintf(m, heightMessage, client.ip, rigID, client.userAgent)
 		return errors.New(m)
 	}
 
-	m := "Valid share for block %v from %v [%v]"
+	m := "✓ Valid share for block %v from %v [%v]"
 	m = fmt.Sprintf(m, heightMessage, client.ip, rigID)
 	log.Println(m)
 
@@ -247,13 +256,4 @@ func (pool *PoolServer) generateWorkFromCache(refresh bool) (bitcoin.Work, error
 	work := append(pool.workCache, interface{}(refresh))
 
 	return work, nil
-}
-
-var statusMap = map[int]string{
-    shareInvalid:      "Invalid",
-    shareValid:        "Valid",
-    shareBlock:        "Block",
-    primaryCandidate:  "Primary",
-    aux1Candidate:     "Aux1",
-    dualCandidate:     "Dual",
 }
